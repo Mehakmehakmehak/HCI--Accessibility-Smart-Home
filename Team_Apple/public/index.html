@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <title>Inclusive Smart Home Dashboard</title>
+
+  <!-- Styles (same folder) -->
+  <link rel="stylesheet" href="./styles.css?v=1" />
+
+  <!-- Visible only to confirm you're not seeing the Firebase template -->
+  <style>
+    .deploy-check{position:fixed;left:12px;bottom:12px;padding:6px 10px;border-radius:8px;background:#e8f5e9;border:1px solid #a5d6a7;font:600 12px/1.2 system-ui}
+  </style>
+</head>
+
+<body class="theme-high-contrast">
+  <noscript>
+    <p style="padding:12px;background:#fff3cd;border:1px solid #ffeeba;margin:0">
+      This app needs JavaScript enabled.
+    </p>
+  </noscript>
+
+  <!-- Skip link for screen readers and keyboard users -->
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="app-header" role="banner">
+    <h1 id="appTitle">Smart Home Control</h1>
+
+    <!-- Quick access settings -->
+    <div class="controls-row">
+      <button id="toggleContrastBtn" class="btn secondary" type="button" aria-pressed="true">
+        High Contrast: On
+      </button>
+      <button id="toggleTextSizeBtn" class="btn secondary" type="button" aria-pressed="false">
+        Large Text: Off
+      </button>
+
+      <!-- Voice control (optional) -->
+      <button id="voiceBtn" class="btn secondary" type="button" aria-describedby="voiceHelp">
+        🎤 Voice
+      </button>
+      <p id="voiceHelp" class="visually-hidden">
+        Activate voice control. Try: "Turn lights on", "Set temperature to 22", "Lock door", or "Help".
+      </p>
+    </div>
+
+    <!-- Persistent HELP button -->
+    <button id="helpBtn" class="btn help" type="button" aria-label="Emergency Help">
+      HELP
+    </button>
+  </header>
+
+  <main id="main" class="container" role="main" aria-labelledby="appTitle">
+    <!-- Live region for short confirmations -->
+    <div id="live" class="live" aria-live="polite"></div>
+
+    <!-- DASHBOARD CARDS -->
+    <section class="grid" aria-label="Smart home modules">
+      <!-- Lights -->
+      <article class="card" aria-labelledby="lightsTitle">
+        <h2 id="lightsTitle">Lights</h2>
+
+        <div class="field-row">
+          <button id="lightToggle" class="btn primary" type="button" aria-pressed="false">
+            Turn On
+          </button>
+          <span id="lightState" class="state-label" aria-live="polite">Off</span>
+        </div>
+
+        <label for="brightness" class="label">Brightness</label>
+        <input id="brightness" type="range" min="0" max="100" value="50" aria-label="Brightness percentage" />
+        <div class="hint">Use left/right arrows to adjust.</div>
+      </article>
+
+      <!-- Temperature -->
+      <article class="card" aria-labelledby="tempTitle">
+        <h2 id="tempTitle">Temperature</h2>
+
+        <div class="temp-display" aria-live="polite">
+          <span id="tempValue" aria-label="Current temperature">21</span><span aria-hidden="true">°C</span>
+        </div>
+
+        <div class="field-row">
+          <button id="tempDown" class="btn primary" type="button" aria-label="Decrease temperature">–</button>
+          <button id="tempUp" class="btn primary" type="button" aria-label="Increase temperature">+</button>
+        </div>
+
+        <div class="field-row">
+          <button id="autoMode" class="btn secondary" type="button" aria-pressed="false" aria-label="Toggle Auto mode">
+            Auto: Off
+          </button>
+        </div>
+      </article>
+
+      <!-- Energy -->
+      <article class="card" aria-labelledby="energyTitle">
+        <h2 id="energyTitle">Energy</h2>
+
+        <div class="energy-stats">
+          <div>
+            <div class="stat-label">Today</div>
+            <div id="energyToday" class="stat-value" aria-live="polite">45 kWh</div>
+          </div>
+          <div>
+            <div class="stat-label">This Week</div>
+            <div id="energyWeek" class="stat-value" aria-live="polite">310 kWh</div>
+          </div>
+        </div>
+
+        <p id="energyFeedback" class="feedback" aria-live="polite">
+          You saved 10% this week. Nice!
+        </p>
+
+        <button id="refreshEnergy" class="btn secondary" type="button">
+          Refresh Usage
+        </button>
+      </article>
+
+      <!-- Security -->
+      <article class="card" aria-labelledby="secTitle">
+        <h2 id="secTitle">Security</h2>
+
+        <div class="field-row">
+          <button id="lockToggle" class="btn primary" type="button" aria-pressed="true" aria-label="Lock or unlock the door">
+            Lock
+          </button>
+          <span id="lockState" class="state-label" aria-live="polite">Locked</span>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <footer class="app-footer" role="contentinfo"></footer>
+
+  <!-- JS (same folder) -->
+  <script src="./app.js?v=1" defer></script>
+
+  <!-- Deployed from /public/index.html — if you see this, Hosting is serving your file -->
+  <div class="deploy-check">Deployed: /public/index.html</div>
+</body>
+</html>
+
