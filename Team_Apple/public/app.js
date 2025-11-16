@@ -1,39 +1,43 @@
 /* ------------------------------------------------------------
   SIMPLE SMART HOME DASHBOARD + FIREBASE REST API
-  - Uses ONLY Database URL + Secret Key
-  - No Firebase SDK, No tokens
 -------------------------------------------------------------*/
 
 /************************************************************
-  FIREBASE SETTINGS (REST API)
+  FIREBASE SETTINGS
 *************************************************************/
 const DB_URL = "https://hci-smart-home-default-rtdb.firebaseio.com/";
 const SECRET = "usWNzGu3q9TKUTpUh8mNmyj0iCO2801cPTmpFF4H";
 
-// Send Light State to Firebase
+/************************************************************
+  FIREBASE WRITE FUNCTIONS
+*************************************************************/
 async function sendLightToFirebase(state) {
-  const url = ${DB_URL}light.json?auth=${SECRET};
-
+  const url = `${DB_URL}light.json?auth=${SECRET}`;
   try {
-    await fetch(url, {
-      method: "PUT",
-      body: JSON.stringify(state)
-    });
-    console.log("🔥 Firebase light set to:", state);
+    await fetch(url, { method: "PUT", body: JSON.stringify(state) });
   } catch (err) {
-    console.error("❌ Firebase write error:", err);
+    console.error("Firebase Light Error:", err);
+  }
+}
+
+async function sendBrightnessToFirebase(value) {
+  const url = `${DB_URL}brightness.json?auth=${SECRET}`;
+  try {
+    await fetch(url, { method: "PUT", body: JSON.stringify(value) });
+  } catch (err) {
+    console.error("Firebase Brightness Error:", err);
   }
 }
 
 /************************************************************
-  LIVE ANNOUNCER (ACCESSIBILITY)
+  LIVE ANNOUNCER + VOICE FEEDBACK
 *************************************************************/
-const live = document.getElementById('live');
+const live = document.getElementById("live");
 function say(msg) {
   live.textContent = msg;
 
-  // Optional speech synthesis
-  if ('speechSynthesis' in window) {
+  if ("speechSynthesis" in window) {
+    speechSynthesis.cancel(); // Cancel any pending speech
     const utter = new SpeechSynthesisUtterance(msg);
     speechSynthesis.speak(utter);
   }
@@ -42,199 +46,260 @@ function say(msg) {
 /************************************************************
   ACCESSIBILITY TOGGLES
 *************************************************************/
-const contrastBtn = document.getElementById('toggleContrastBtn');
-const textSizeBtn = document.getElementById('toggleTextSizeBtn');
+const contrastBtn = document.getElementById("toggleContrastBtn");
+const textSizeBtn = document.getElementById("toggleTextSizeBtn");
 
-contrastBtn.addEventListener('click', () => {
-  const on = contrastBtn.getAttribute('aria-pressed') === 'true';
-  contrastBtn.setAttribute('aria-pressed', String(!on));
-  contrastBtn.textContent = High Contrast: ${on ? 'Off' : 'On'};
-  say(High contrast ${on ? 'off' : 'on'});
+contrastBtn.addEventListener("click", () => {
+  const on = contrastBtn.getAttribute("aria-pressed") === "true";
+  contrastBtn.setAttribute("aria-pressed", String(!on));
+  contrastBtn.textContent = `High Contrast: ${on ? "Off" : "On"}`;
+  say(`High contrast ${on ? "off" : "on"}`);
 });
 
-textSizeBtn.addEventListener('click', () => {
-  const on = textSizeBtn.getAttribute('aria-pressed') === 'true';
-  textSizeBtn.setAttribute('aria-pressed', String(!on));
-  textSizeBtn.textContent = Large Text: ${on ? 'Off' : 'On'};
-  document.body.classList.toggle('text-lg', !on);
-  say(Large text ${on ? 'off' : 'on'});
-});
-
-/************************************************************
-  HELP / EMERGENCY BUTTON
-*************************************************************/
-document.getElementById('helpBtn').addEventListener('click', () => {
-  say('Emergency alert sent to your contacts.');
-  alert('Emergency: Caregivers have been notified (demo).');
+textSizeBtn.addEventListener("click", () => {
+  const on = textSizeBtn.getAttribute("aria-pressed") === "true";
+  textSizeBtn.setAttribute("aria-pressed", String(!on));
+  textSizeBtn.textContent = `Large Text: ${on ? "Off" : "On"}`;
+  document.body.classList.toggle("text-lg", !on);
+  say(`Large text ${on ? "off" : "on"}`);
 });
 
 /************************************************************
-  LIGHTS MODULE (🔥 Connected to Firebase)
+  HELP BUTTON
 *************************************************************/
-const lightToggle = document.getElementById('lightToggle');
-const lightStateLabel = document.getElementById('lightState');
-const brightness = document.getElementById('brightness');
+document.getElementById("helpBtn").addEventListener("click", () => {
+  say("Emergency alert sent to your contacts.");
+  alert("Emergency: Caregivers have been notified (demo).");
+});
+
+/************************************************************
+  LIGHTS MODULE
+*************************************************************/
+const lightToggle = document.getElementById("lightToggle");
+const lightStateLabel = document.getElementById("lightState");
+const brightness = document.getElementById("brightness");
 
 let lightsOn = false;
 
-// Update UI
 function updateLightUI() {
-  lightToggle.textContent = lightsOn ? 'Turn Off' : 'Turn On';
-  lightToggle.setAttribute('aria-pressed', String(lightsOn));
-  lightStateLabel.textContent = lightsOn ? 'On' : 'Off';
+  lightToggle.textContent = lightsOn ? "Turn Off" : "Turn On";
+  lightToggle.setAttribute("aria-pressed", String(lightsOn));
+  lightStateLabel.textContent = lightsOn ? "On" : "Off";
 }
 
-// On Light Toggle
-lightToggle.addEventListener('click', () => {
+lightToggle.addEventListener("click", () => {
   lightsOn = !lightsOn;
   updateLightUI();
-  say(Lights turned ${lightsOn ? 'on' : 'off'}.);
-
-  // 🔥 SEND TO FIREBASE
-  const fbValue = lightsOn ? "ON" : "OFF";
-  sendLightToFirebase(fbValue);
+  say(`Lights turned ${lightsOn ? "on" : "off"}.`);
+  sendLightToFirebase(lightsOn ? "ON" : "OFF");
 });
 
-// Brightness slider local UI only
-brightness.addEventListener('input', (e) => {
-  const value = e.target.value;
-  say(Brightness set to ${value} percent.);
+let brightnessAnnounceCount = 0;
+
+brightness.addEventListener("change", (e) => {
+  const value = Number(e.target.value);
+  
+  if (brightnessAnnounceCount < 2) {
+    say(`Brightness set to ${value} percent.`);
+    brightnessAnnounceCount++;
+  }
+  
+  sendBrightnessToFirebase(value);
+});
+
+brightness.addEventListener("input", (e) => {
+  const value = Number(e.target.value);
+  sendBrightnessToFirebase(value);
 });
 
 /************************************************************
-  TEMPERATURE MODULE
+  TEMPERATURE + HUMIDITY MODULE
 *************************************************************/
-const tempValueEl = document.getElementById('tempValue');
-const tempDown = document.getElementById('tempDown');
-const tempUp = document.getElementById('tempUp');
-const autoMode = document.getElementById('autoMode');
+const tempValue = document.getElementById("tempValue");
+const unitToggle = document.getElementById("unitToggle");
+const humidityValue = document.getElementById("humidityValue");
 
-let temp = 21;
-let isAuto = false;
+let currentTempC = 0;
+let showF = false;
+
+const cToF = (c) => (c * 9) / 5 + 32;
 
 function updateTempUI() {
-  tempValueEl.textContent = String(temp);
-  autoMode.textContent = Auto: ${isAuto ? 'On' : 'Off'};
-  autoMode.setAttribute('aria-pressed', String(isAuto));
+  tempValue.textContent = showF
+    ? cToF(currentTempC).toFixed(1)
+    : currentTempC.toFixed(1);
 }
 
-tempDown.addEventListener('click', () => {
-  temp -= 1;
+unitToggle.addEventListener("click", () => {
+  showF = !showF;
+  unitToggle.textContent = showF ? "Show °C" : "Show °F";
+  say(`Showing temperature in ${showF ? "Fahrenheit" : "Celsius"}`);
   updateTempUI();
-  say(Temperature set to ${temp} degrees.);
 });
 
-tempUp.addEventListener('click', () => {
-  temp += 1;
-  updateTempUI();
-  say(Temperature set to ${temp} degrees.);
-});
+async function fetchTemperature() {
+  try {
+    const res = await fetch(`${DB_URL}temperature_c.json?auth=${SECRET}`);
+    const value = await res.json();
 
-autoMode.addEventListener('click', () => {
-  isAuto = !isAuto;
-  updateTempUI();
-  say(Auto mode ${isAuto ? 'enabled' : 'disabled'}.);
+    if (typeof value === "number") {
+      currentTempC = value;
+      updateTempUI();
+    }
+  } catch (err) {
+    console.error("Temp Fetch Error:", err);
+  }
+}
+
+async function fetchHumidity() {
+  try {
+    const res = await fetch(`${DB_URL}humidity.json?auth=${SECRET}`);
+    const value = await res.json();
+
+    if (typeof value === "number") {
+      humidityValue.textContent = value;
+    }
+  } catch (err) {
+    console.error("Humidity Fetch Error:", err);
+  }
+}
+
+setInterval(fetchTemperature, 2000);
+setInterval(fetchHumidity, 2000);
+
+/************************************************************
+  ENERGY MODULE (Demo)
+*************************************************************/
+const energyToday = document.getElementById("energyToday");
+const energyWeek = document.getElementById("energyWeek");
+const energyFeedback = document.getElementById("energyFeedback");
+const refreshEnergy = document.getElementById("refreshEnergy");
+
+refreshEnergy.addEventListener("click", () => {
+  const today = Math.floor(Math.random() * (55 - 35) + 35);
+  const week = Math.floor(Math.random() * (340 - 280) + 280);
+  const saved = Math.floor(Math.random() * (15 - 5) + 5);
+
+  energyToday.textContent = `${today} kWh`;
+  energyWeek.textContent = `${week} kWh`;
+  energyFeedback.textContent = `You saved ${saved}% this week. Keep it up!`;
+
+  say("Energy usage updated.");
 });
 
 /************************************************************
-  ENERGY MODULE
+  PROXIMITY SENSOR (🔥 FIXED + RED ALERT)
 *************************************************************/
-const energyToday = document.getElementById('energyToday');
-const energyWeek = document.getElementById('energyWeek');
-const energyFeedback = document.getElementById('energyFeedback');
-const refreshEnergy = document.getElementById('refreshEnergy');
+const proximityStatus = document.getElementById("proximityStatus");
+const distanceValue = document.getElementById("distanceValue");
+const proximityAlert = document.getElementById("proximityAlert");
 
-function randomBetween(min, max) {
-  return Math.floor(Math.random() * (max - min + 1) + min);
+let lastState = "CLEAR";
+let movementAnnouncedCount = 0;
+let clearAnnouncedCount = 0;
+
+async function fetchProximity() {
+  try {
+    const distRes = await fetch(`${DB_URL}security/distance.json?auth=${SECRET}`);
+    const statusRes = await fetch(`${DB_URL}security/status.json?auth=${SECRET}`);
+
+    const distance = await distRes.json();
+    const status = await statusRes.json();
+
+    if (typeof distance === "number") {
+      distanceValue.textContent = distance + " cm";
+    }
+
+    if (status) {
+      proximityStatus.textContent = status;
+
+      if (status === "WARNING") {
+        proximityStatus.style.color = "red";
+        proximityAlert.style.display = "block";
+
+        if (lastState !== "WARNING" && movementAnnouncedCount === 0) {
+          movementAnnouncedCount++;
+          clearAnnouncedCount = 0; // Reset clear counter
+          say("Movement detected.");
+        }
+      } else {
+        proximityStatus.style.color = "green";
+        proximityAlert.style.display = "none";
+
+        if (lastState !== "CLEAR" && clearAnnouncedCount === 0) {
+          clearAnnouncedCount++;
+          movementAnnouncedCount = 0; // Reset movement counter
+          say("Area is now clear.");
+        }
+      }
+
+      lastState = status;
+    }
+  } catch (err) {
+    console.error("Proximity Fetch Error:", err);
+  }
 }
 
-refreshEnergy.addEventListener('click', () => {
-  const today = randomBetween(35, 55);
-  const week = randomBetween(280, 340);
-  energyToday.textContent = ${today} kWh;
-  energyWeek.textContent = ${week} kWh;
-
-  const saved = randomBetween(5, 15);
-  energyFeedback.textContent = You saved ${saved}% this week. Keep it up!;
-  say('Energy usage updated.');
-});
+setInterval(fetchProximity, 1500);
 
 /************************************************************
-  SECURITY / DOOR LOCK MODULE
+  VOICE CONTROL
 *************************************************************/
-const lockToggle = document.getElementById('lockToggle');
-const lockState = document.getElementById('lockState');
-
-let isLocked = true;
-
-function updateLockUI() {
-  lockToggle.textContent = isLocked ? 'Unlock' : 'Lock';
-  lockToggle.setAttribute('aria-pressed', String(isLocked));
-  lockState.textContent = isLocked ? 'Locked' : 'Unlocked';
-}
-
-lockToggle.addEventListener('click', () => {
-  isLocked = !isLocked;
-  updateLockUI();
-  say(Door ${isLocked ? 'locked' : 'unlocked'}.);
-});
-
-/************************************************************
-  OPTIONAL VOICE CONTROL
-*************************************************************/
-const voiceBtn = document.getElementById('voiceBtn');
+const voiceBtn = document.getElementById("voiceBtn");
+let recognition;
 
 function handleCommand(text) {
   const cmd = text.toLowerCase();
 
-  // LIGHTS
-  if (cmd.includes('lights on')) { lightsOn = true; updateLightUI(); sendLightToFirebase("ON"); say('Lights on.'); return; }
-  if (cmd.includes('lights off')) { lightsOn = false; updateLightUI(); sendLightToFirebase("OFF"); say('Lights off.'); return; }
-
-  // TEMPERATURE
-  const match = cmd.match(/set temperature to (\d{1,2})/);
-  if (match) { temp = parseInt(match[1]); updateTempUI(); say(Temperature set to ${temp}); return; }
-
-  // LOCK / UNLOCK
-  if (cmd.includes('unlock')) { isLocked = false; updateLockUI(); say('Door unlocked.'); return; }
-  if (cmd.includes('lock')) { isLocked = true; updateLockUI(); say('Door locked.'); return; }
-
-  // HELP
-  if (cmd.includes('help') || cmd.includes('emergency')) {
-    document.getElementById('helpBtn').click();
+  if (cmd.includes("lights on")) {
+    lightsOn = true;
+    updateLightUI();
+    sendLightToFirebase("ON");
+    say("Lights on.");
     return;
   }
 
-  say('Sorry, I did not understand that.');
+  if (cmd.includes("lights off")) {
+    lightsOn = false;
+    updateLightUI();
+    sendLightToFirebase("OFF");
+    say("Lights off.");
+    return;
+  }
+
+  if (cmd.includes("help")) {
+    document.getElementById("helpBtn").click();
+    return;
+  }
+
+  say("Sorry, I didn't understand that.");
 }
 
-let recognition;
-if ('webkitSpeechRecognition' in window) {
+if ("webkitSpeechRecognition" in window) {
   const R = window.webkitSpeechRecognition;
   recognition = new R();
-  recognition.lang = 'en-US';
+  recognition.lang = "en-US";
   recognition.interimResults = false;
 
-  recognition.addEventListener('result', e => {
+  recognition.addEventListener("result", (e) => {
     const transcript = e.results[0][0].transcript;
     handleCommand(transcript);
   });
 
-  recognition.addEventListener('end', () => {
+  recognition.addEventListener("end", () => {
     voiceBtn.disabled = false;
-    voiceBtn.textContent = '🎤 Voice';
+    voiceBtn.textContent = "🎤 Voice";
   });
 
-  voiceBtn.addEventListener('click', () => {
+  voiceBtn.addEventListener("click", () => {
     voiceBtn.disabled = true;
-    voiceBtn.textContent = 'Listening…';
-    say('Listening');
+    voiceBtn.textContent = "Listening…";
+    say("Listening");
     recognition.start();
   });
-
 } else {
-  voiceBtn.addEventListener('click', () => {
-    const text = prompt("Type command (Lights on, 22 degrees, Unlock door):");
+  voiceBtn.addEventListener("click", () => {
+    const text = prompt("Type a command:");
     if (text) handleCommand(text);
   });
 }
