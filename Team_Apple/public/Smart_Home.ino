@@ -1,3 +1,4 @@
+//COMP 3450: <Mehak,Ujwal,Harshit>
 #include <WiFiS3.h>
 #include <ArduinoHttpClient.h>
 #include <DHT.h>
