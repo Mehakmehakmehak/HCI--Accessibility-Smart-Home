@@ -37,31 +37,177 @@ function say(msg) {
   live.textContent = msg;
 
   if ("speechSynthesis" in window) {
-    speechSynthesis.cancel(); // Cancel any pending speech
+    speechSynthesis.cancel();
     const utter = new SpeechSynthesisUtterance(msg);
     speechSynthesis.speak(utter);
   }
 }
 
 /************************************************************
-  ACCESSIBILITY TOGGLES
+  ACCESSIBILITY TOGGLES (TAILWIND ONLY)
 *************************************************************/
 const contrastBtn = document.getElementById("toggleContrastBtn");
 const textSizeBtn = document.getElementById("toggleTextSizeBtn");
 
-contrastBtn.addEventListener("click", () => {
-  const on = contrastBtn.getAttribute("aria-pressed") === "true";
-  contrastBtn.setAttribute("aria-pressed", String(!on));
-  contrastBtn.textContent = `High Contrast: ${on ? "Off" : "On"}`;
-  say(`High contrast ${on ? "off" : "on"}`);
-});
+const bodyRoot = document.getElementById("bodyRoot") || document.body;
+const headerRoot = document.getElementById("headerRoot");
+const footerRoot = document.getElementById("footerRoot");
+
+// groups for resizing + contrast
+const cards = [...document.querySelectorAll(".card")];
+const titles = [...document.querySelectorAll(".card-title")];
+const buttons = [...document.querySelectorAll("button")];
+const hints = [...document.querySelectorAll(".hint-base")];
+const labels = [...document.querySelectorAll(".label-base")];
+const tempsVal = document.getElementById("tempValue");
+const tempsUnit = document.getElementById("tempUnit");
+const statsVal = [...document.querySelectorAll(".stat-value-base")];
+const statsLab = [...document.querySelectorAll(".stat-label-base")];
+const statusText = [...document.querySelectorAll(".status-base")];
+const humidityText = [...document.querySelectorAll(".humidity-base")];
+const feedbackText = document.getElementById("energyFeedback");
+const helpBtn = document.getElementById("helpBtn");
+
+// ---------- LARGE TEXT MODE ----------
+function setLargeText(on) {
+  // base body text
+  bodyRoot.classList.toggle("text-xl", on);
+
+  // app title
+  const appTitle = document.getElementById("appTitle");
+  if (appTitle) {
+    appTitle.classList.toggle("text-5xl", on);
+    appTitle.classList.toggle("text-3xl", !on);
+  }
+
+  // card titles
+  titles.forEach(t => {
+    t.classList.toggle("text-3xl", on);
+    t.classList.toggle("text-2xl", !on);
+  });
+
+  // buttons bigger
+  buttons.forEach(b => {
+    b.classList.toggle("text-2xl", on);
+    b.classList.toggle("text-base", !on);
+    b.classList.toggle("py-4", on);
+    b.classList.toggle("py-3", !on);
+    b.classList.toggle("px-6", on);
+    b.classList.toggle("px-4", !on);
+  });
+
+  // labels / hints
+  labels.forEach(l => l.classList.toggle("text-2xl", on));
+  hints.forEach(h => h.classList.toggle("text-lg", on));
+
+  // temperature text
+  if (tempsVal) {
+    tempsVal.classList.toggle("text-6xl", on);
+    tempsVal.classList.toggle("text-5xl", !on);
+  }
+  if (tempsUnit) {
+    tempsUnit.classList.toggle("text-4xl", on);
+    tempsUnit.classList.toggle("text-3xl", !on);
+  }
+
+  // stats + status + humidity
+  statsVal.forEach(v => v.classList.toggle("text-2xl", on));
+  statsLab.forEach(v => v.classList.toggle("text-lg", on));
+  statusText.forEach(s => s.classList.toggle("text-2xl", on));
+  humidityText.forEach(h => h.classList.toggle("text-2xl", on));
+  if (feedbackText) feedbackText.classList.toggle("text-2xl", on);
+}
 
 textSizeBtn.addEventListener("click", () => {
   const on = textSizeBtn.getAttribute("aria-pressed") === "true";
+  setLargeText(!on);
   textSizeBtn.setAttribute("aria-pressed", String(!on));
   textSizeBtn.textContent = `Large Text: ${on ? "Off" : "On"}`;
-  document.body.classList.toggle("text-lg", !on);
   say(`Large text ${on ? "off" : "on"}`);
+});
+
+// ---------- HIGH CONTRAST MODE ----------
+function setContrast(on) {
+  // body flip
+  bodyRoot.classList.toggle("bg-black", on);
+  bodyRoot.classList.toggle("text-white", on);
+  bodyRoot.classList.toggle("bg-slate-50", !on);
+  bodyRoot.classList.toggle("text-slate-900", !on);
+
+  // header
+  if (headerRoot) {
+    headerRoot.classList.toggle("bg-black", on);
+    headerRoot.classList.toggle("border-white", on);
+    headerRoot.classList.toggle("text-white", on);
+
+    headerRoot.classList.toggle("bg-white", !on);
+    headerRoot.classList.toggle("border-slate-200", !on);
+    headerRoot.classList.toggle("text-slate-900", !on);
+  }
+
+  // footer
+  if (footerRoot) {
+    footerRoot.classList.toggle("text-white", on);
+    footerRoot.classList.toggle("text-slate-500", !on);
+  }
+
+  // cards
+  cards.forEach(c => {
+    c.classList.toggle("bg-black", on);
+    c.classList.toggle("text-white", on);
+    c.classList.toggle("border-white", on);
+
+    c.classList.toggle("bg-white", !on);
+    c.classList.toggle("text-slate-900", !on);
+    c.classList.toggle("border-slate-900", !on);
+  });
+
+  // secondary buttons
+  document.querySelectorAll(".btn-secondary").forEach(b => {
+    b.classList.toggle("bg-black", on);
+    b.classList.toggle("text-white", on);
+    b.classList.toggle("border-white", on);
+
+    b.classList.toggle("bg-slate-100", !on);
+    b.classList.toggle("text-slate-900", !on);
+    b.classList.toggle("border-slate-300", !on);
+  });
+
+  // primary buttons – add bright outline
+  document.querySelectorAll(".btn-primary").forEach(b => {
+    b.classList.toggle("ring-4", on);
+    b.classList.toggle("ring-white", on);
+  });
+
+  // help button yellow in contrast
+  if (helpBtn) {
+    helpBtn.classList.toggle("bg-yellow-300", on);
+    helpBtn.classList.toggle("text-black", on);
+    helpBtn.classList.toggle("bg-rose-600", !on);
+    helpBtn.classList.toggle("text-white", !on);
+  }
+
+  // stat boxes flip
+  document.querySelectorAll(".stat-box").forEach(s => {
+    s.classList.toggle("bg-black", on);
+    s.classList.toggle("border-white", on);
+    s.classList.toggle("bg-slate-50", !on);
+    s.classList.toggle("border-slate-200", !on);
+  });
+
+  // hints
+  hints.forEach(h => {
+    h.classList.toggle("text-slate-300", on);
+    h.classList.toggle("text-slate-600", !on);
+  });
+}
+
+contrastBtn.addEventListener("click", () => {
+  const on = contrastBtn.getAttribute("aria-pressed") === "true";
+  setContrast(!on);
+  contrastBtn.setAttribute("aria-pressed", String(!on));
+  contrastBtn.textContent = `High Contrast: ${on ? "Off" : "On"}`;
+  say(`High contrast ${on ? "off" : "on"}`);
 });
 
 /************************************************************
@@ -98,12 +244,12 @@ let brightnessAnnounceCount = 0;
 
 brightness.addEventListener("change", (e) => {
   const value = Number(e.target.value);
-  
+
   if (brightnessAnnounceCount < 2) {
     say(`Brightness set to ${value} percent.`);
     brightnessAnnounceCount++;
   }
-  
+
   sendBrightnessToFirebase(value);
 });
 
@@ -188,7 +334,7 @@ refreshEnergy.addEventListener("click", () => {
 });
 
 /************************************************************
-  PROXIMITY SENSOR (🔥 FIXED + RED ALERT)
+  PROXIMITY SENSOR (TAILWIND ALERT TOGGLE)
 *************************************************************/
 const proximityStatus = document.getElementById("proximityStatus");
 const distanceValue = document.getElementById("distanceValue");
@@ -214,21 +360,27 @@ async function fetchProximity() {
       proximityStatus.textContent = status;
 
       if (status === "WARNING") {
-        proximityStatus.style.color = "red";
-        proximityAlert.style.display = "block";
+        proximityStatus.classList.remove("text-green-500");
+        proximityStatus.classList.add("text-red-500");
+
+        proximityAlert.classList.remove("hidden");
+        proximityAlert.classList.add("block");
 
         if (lastState !== "WARNING" && movementAnnouncedCount === 0) {
           movementAnnouncedCount++;
-          clearAnnouncedCount = 0; // Reset clear counter
+          clearAnnouncedCount = 0;
           say("Movement detected.");
         }
       } else {
-        proximityStatus.style.color = "green";
-        proximityAlert.style.display = "none";
+        proximityStatus.classList.remove("text-red-500");
+        proximityStatus.classList.add("text-green-500");
+
+        proximityAlert.classList.add("hidden");
+        proximityAlert.classList.remove("block");
 
         if (lastState !== "CLEAR" && clearAnnouncedCount === 0) {
           clearAnnouncedCount++;
-          movementAnnouncedCount = 0; // Reset movement counter
+          movementAnnouncedCount = 0;
           say("Area is now clear.");
         }
       }

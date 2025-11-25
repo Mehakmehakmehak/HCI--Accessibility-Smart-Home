@@ -1,173 +1,291 @@
-<!-- COMP 3450: <Mehak,Ujwal,Harshit> -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#000000" />
   <title>Inclusive Smart Home Dashboard</title>
 
-  <link rel="stylesheet" href="./styles.css?v=1" />  index . html
-
-  <style>
-    .deploy-check {
-      position: fixed;
-      left: 12px;
-      bottom: 12px;
-      padding: 6px 10px;
-      border-radius: 8px;
-      background: #e8f5e9;
-      border: 1px solid #a5d6a7;
-      font: 600 12px/1.2 system-ui;
-    }
-
-    /* 🔥 BIG RED PROXIMITY ALERT */
-    .alert-box {
-      display: none;
-      background: #ff2e2e;
-      color: white;
-      padding: 14px;
-      border-radius: 10px;
-      margin-top: 12px;
-      font-size: 1.1rem;
-      font-weight: 600;
-      text-align: center;
-      box-shadow: 0 0 12px rgba(255, 0, 0, 0.6);
-      animation: pulse 1.2s infinite;
-    }
-
-    @keyframes pulse {
-      0% { box-shadow: 0 0 10px rgba(255,0,0,0.5); }
-      50% { box-shadow: 0 0 20px rgba(255,0,0,0.9); }
-      100% { box-shadow: 0 0 10px rgba(255,0,0,0.5); }
-    }
-  </style>
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="theme-high-contrast">
-  <noscript>
-    <p style="padding:12px;background:#fff3cd;border:1px solid #ffeeba;margin:0">
-      This app needs JavaScript enabled.
-    </p>
-  </noscript>
+<body
+  id="bodyRoot"
+  class="bg-slate-50 text-slate-900 font-sans min-h-screen transition-colors duration-300"
+>
+  <!-- Skip link -->
+  <a
+    class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50
+           focus:bg-yellow-300 focus:text-black focus:px-4 focus:py-2 focus:rounded-lg
+           focus:ring-4 focus:ring-yellow-400"
+    href="#main"
+  >
+    Skip to main content
+  </a>
 
-  <a class="skip-link" href="#main">Skip to main content</a>
+  <!-- HEADER -->
+  <header
+    id="headerRoot"
+    class="bg-white border-b-4 border-slate-200 text-slate-900 sticky top-0 z-40 transition-colors duration-300"
+  >
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-5 flex items-center gap-4 justify-between">
 
-  <header class="app-header" role="banner">
-    <h1 id="appTitle">Smart Home Control</h1>
+      <h1 id="appTitle" class="text-3xl sm:text-4xl font-extrabold tracking-tight">
+        Smart Home Control
+      </h1>
 
-    <div class="controls-row">
-      <button id="toggleContrastBtn" class="btn secondary" aria-pressed="true">
-        High Contrast: On
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+        <button
+          id="toggleContrastBtn"
+          class="btn-base btn-secondary px-4 py-3 rounded-xl font-bold text-base
+                 bg-slate-100 border-2 border-slate-300 text-slate-900
+                 hover:bg-slate-200 shadow-lg active:scale-[0.98]
+                 focus:outline-none focus:ring-4 focus:ring-yellow-300"
+          aria-pressed="true"
+        >
+          High Contrast: On
+        </button>
+
+        <button
+          id="toggleTextSizeBtn"
+          class="btn-base btn-secondary px-4 py-3 rounded-xl font-bold text-base
+                 bg-slate-100 border-2 border-slate-300 text-slate-900
+                 hover:bg-slate-200 shadow-lg active:scale-[0.98]
+                 focus:outline-none focus:ring-4 focus:ring-yellow-300"
+          aria-pressed="false"
+        >
+          Large Text: Off
+        </button>
+
+        <button
+          id="voiceBtn"
+          class="btn-base btn-secondary px-4 py-3 rounded-xl font-bold text-base
+                 bg-slate-100 border-2 border-slate-300 text-slate-900
+                 hover:bg-slate-200 shadow-lg active:scale-[0.98]
+                 focus:outline-none focus:ring-4 focus:ring-yellow-300"
+          aria-describedby="voiceHelp"
+        >
+          🎤 Voice
+        </button>
+
+        <p id="voiceHelp" class="sr-only">
+          Try saying: "Turn lights on", "Help", etc.
+        </p>
+      </div>
+
+      <button
+        id="helpBtn"
+        class="btn-help bg-rose-600 text-white px-6 py-3 rounded-2xl text-lg font-extrabold
+               shadow-lg hover:bg-rose-700 active:scale-[0.98]
+               focus:outline-none focus:ring-4 focus:ring-yellow-300"
+      >
+        HELP
       </button>
-
-      <button id="toggleTextSizeBtn" class="btn secondary" aria-pressed="false">
-        Large Text: Off
-      </button>
-
-      <button id="voiceBtn" class="btn secondary" aria-describedby="voiceHelp">
-        🎤 Voice
-      </button>
-
-      <p id="voiceHelp" class="visually-hidden">
-        Try saying: "Turn lights on", "Help", etc.
-      </p>
     </div>
-
-    <button id="helpBtn" class="btn help" aria-label="Emergency Help">
-      HELP
-    </button>
   </header>
 
-  <main id="main" class="container" aria-labelledby="appTitle">
+  <!-- MAIN -->
+  <main id="main" class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
-    <div id="live" class="live" aria-live="polite"></div>
+    <div id="live" class="mb-4 text-lg font-semibold" aria-live="polite"></div>
 
-    <section class="grid" aria-label="Smart home modules">
+    <section class="grid gap-5 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
 
-      <!-- Lights -->
-      <article class="card" aria-labelledby="lightsTitle">
-        <h2 id="lightsTitle">Lights</h2>
+      <!-- LIGHTS -->
+      <article
+        class="card bg-white border-4 border-slate-900 rounded-2xl p-5 shadow-lg
+               transition-colors duration-300 focus-within:ring-4 focus-within:ring-yellow-300"
+        aria-labelledby="lightsTitle"
+      >
+        <h2 id="lightsTitle" class="card-title text-2xl font-extrabold mb-4">
+          💡 Lights
+        </h2>
 
-        <div class="field-row">
-          <button id="lightToggle" class="btn primary" aria-pressed="false">
+        <div class="flex items-center gap-3 mb-4">
+          <button
+            id="lightToggle"
+            class="btn-base btn-primary flex-1 px-4 py-3 rounded-xl font-bold text-base
+                   bg-blue-900 text-white shadow-lg hover:bg-blue-800 active:scale-[0.98]
+                   focus:outline-none focus:ring-4 focus:ring-yellow-300"
+            aria-pressed="false"
+          >
             Turn On
           </button>
-          <span id="lightState" class="state-label" aria-live="polite">Off</span>
+
+          <span
+            id="lightState"
+            class="px-4 py-2 rounded-full font-bold text-base bg-slate-100 border-2 border-slate-300"
+          >
+            Off
+          </span>
         </div>
 
-        <label for="brightness" class="label">Brightness</label>
-        <input id="brightness" type="range" min="0" max="100" value="50" aria-label="Brightness percentage" />
-        <div class="hint">Use left/right arrows to adjust.</div>
+        <label
+          for="brightness"
+          class="label-base block font-bold mb-2 text-lg"
+        >
+          Brightness
+        </label>
+
+        <input
+          id="brightness"
+          type="range"
+          min="0"
+          max="100"
+          value="50"
+          class="w-full accent-blue-900 h-3 cursor-pointer rounded-lg
+                 focus:outline-none focus:ring-4 focus:ring-yellow-300"
+        />
+
+        <p class="hint-base mt-2 text-sm text-slate-600">
+          Use left/right arrows to adjust.
+        </p>
       </article>
 
-      <!-- Temperature -->
-      <article class="card" aria-labelledby="tempTitle">
-        <h2 id="tempTitle">Temperature</h2>
+      <!-- TEMPERATURE -->
+      <article
+        class="card bg-white border-4 border-slate-900 rounded-2xl p-5 shadow-lg
+               transition-colors duration-300 focus-within:ring-4 focus-within:ring-yellow-300"
+        aria-labelledby="tempTitle"
+      >
+        <h2 id="tempTitle" class="card-title text-2xl font-extrabold mb-3">
+          🌡 Temperature
+        </h2>
 
-        <div class="temp-display" aria-live="polite">
-          <span id="tempValue">21</span>
-          <span id="tempUnit">°C</span>
+        <div class="flex items-end gap-1 mb-3">
+          <span
+            id="tempValue"
+            class="temp-value-base text-5xl font-extrabold leading-none"
+          >
+            21
+          </span>
+          <span
+            id="tempUnit"
+            class="temp-unit-base text-3xl font-extrabold leading-none"
+          >
+            °C
+          </span>
         </div>
 
-        <button id="unitToggle" class="btn secondary" aria-label="Switch °C/°F">
+        <button
+          id="unitToggle"
+          class="btn-base btn-secondary w-full px-4 py-3 rounded-xl font-bold text-base
+                 bg-slate-100 border-2 border-slate-300 text-slate-900
+                 hover:bg-slate-200 shadow-lg active:scale-[0.98]
+                 focus:outline-none focus:ring-4 focus:ring-yellow-300"
+        >
           Show °F
         </button>
 
-        <div class="humidity-display" aria-live="polite" style="margin-top:16px;">
-          <span class="label">Humidity:</span>
-          <span id="humidityValue">45</span>
-          <span>%</span>
+        <div class="mt-4 humidity-base text-lg">
+          <span class="font-bold">Humidity:</span>
+          <span id="humidityValue" class="ml-2 font-extrabold">45</span><span>%</span>
         </div>
 
-        <p class="hint">Readings are from your DHT11 sensor.</p>
+        <p class="hint-base mt-2 text-sm text-slate-600">
+          Live sensor reading (DHT11).
+        </p>
       </article>
 
-      <!-- Energy -->
-      <article class="card" aria-labelledby="energyTitle">
-        <h2 id="energyTitle">Energy</h2>
+      <!-- ENERGY -->
+      <article
+        class="card bg-white border-4 border-slate-900 rounded-2xl p-5 shadow-lg
+               transition-colors duration-300 focus-within:ring-4 focus-within:ring-yellow-300"
+        aria-labelledby="energyTitle"
+      >
+        <h2 id="energyTitle" class="card-title text-2xl font-extrabold mb-4">
+          ⚡ Energy
+        </h2>
 
-        <div class="energy-stats">
-          <div>
-            <div class="stat-label">Today</div>
-            <div id="energyToday" class="stat-value">45 kWh</div>
+        <div class="flex justify-between gap-4">
+          <div
+            class="stat-box bg-slate-50 rounded-xl p-3 border-2 border-slate-200 flex-1
+                   transition-colors duration-300"
+          >
+            <div class="stat-label-base text-sm text-slate-600 font-semibold">
+              Today
+            </div>
+            <div id="energyToday" class="stat-value-base text-xl font-extrabold mt-1">
+              45 kWh
+            </div>
           </div>
-          <div>
-            <div class="stat-label">This Week</div>
-            <div id="energyWeek" class="stat-value">310 kWh</div>
+
+          <div
+            class="stat-box bg-slate-50 rounded-xl p-3 border-2 border-slate-200 flex-1
+                   transition-colors duration-300"
+          >
+            <div class="stat-label-base text-sm text-slate-600 font-semibold">
+              This Week
+            </div>
+            <div id="energyWeek" class="stat-value-base text-xl font-extrabold mt-1">
+              310 kWh
+            </div>
           </div>
         </div>
 
-        <p id="energyFeedback" class="feedback">You saved 10% this week. Nice!</p>
+        <p
+          id="energyFeedback"
+          class="feedback-base mt-4 bg-emerald-600 text-white font-bold text-center
+                 px-3 py-3 rounded-xl shadow-lg text-lg"
+        >
+          You saved 10% this week.
+        </p>
 
-        <button id="refreshEnergy" class="btn secondary">Refresh Usage</button>
+        <button
+          id="refreshEnergy"
+          class="btn-base btn-secondary w-full mt-4 px-4 py-3 rounded-xl font-bold text-base
+                 bg-slate-100 border-2 border-slate-300 text-slate-900
+                 hover:bg-slate-200 shadow-lg active:scale-[0.98]
+                 focus:outline-none focus:ring-4 focus:ring-yellow-300"
+        >
+          Refresh Usage
+        </button>
       </article>
 
-      <!-- SECURITY (UPDATED FOR PROXIMITY ALERT) -->
-      <article class="card" aria-labelledby="secTitle">
-        <h2 id="secTitle">Security</h2>
+      <!-- SECURITY -->
+      <article
+        class="card bg-white border-4 border-slate-900 rounded-2xl p-5 shadow-lg
+               transition-colors duration-300 focus-within:ring-4 focus-within:ring-yellow-300"
+        aria-labelledby="secTitle"
+      >
+        <h2 id="secTitle" class="card-title text-2xl font-extrabold mb-3">
+          🔒 Security
+        </h2>
 
-        <!-- 🔥 BIG ALERT BOX -->
-        <div id="proximityAlert" class="alert-box">
-          🚨 MOTION DETECTED – Someone is close!
+        <div
+          id="proximityAlert"
+          class="hidden bg-red-600 text-white font-extrabold text-center
+                 px-4 py-3 rounded-xl shadow-lg animate-pulse mb-3"
+          role="alert"
+        >
+          🚨 MOTION DETECTED
         </div>
 
-        <!-- Distance + Status -->
-        <div class="security-sensor" style="margin-top:16px;">
-          <p><strong>Status:</strong> <span id="proximityStatus">--</span></p>
-          <p><strong>Distance:</strong> <span id="distanceValue">--</span> cm</p>
-        </div>
+        <p class="status-base mb-1 text-lg">
+          <strong>Status:</strong>
+          <span id="proximityStatus" class="ml-2 font-extrabold">--</span>
+        </p>
 
-        <p class="hint">Live readings from HC-SR04 sensor.</p>
+        <p class="status-base text-lg">
+          <strong>Distance:</strong>
+          <span id="distanceValue" class="ml-2 font-extrabold">-- cm</span>
+        </p>
+
+        <p class="hint-base mt-2 text-sm text-slate-600">
+          HC-SR04 live sensor.
+        </p>
       </article>
 
     </section>
   </main>
 
-  <footer class="app-footer"></footer>
+  <footer
+    id="footerRoot"
+    class="py-6 text-center text-sm text-slate-500 transition-colors duration-300"
+  >
+    Inclusive Smart Home Dashboard
+  </footer>
 
-  <script src="./app.js?v=1" defer></script>
-
-  <div class="deploy-check">Deployed: /public/index.html</div>
+  <script src="./app.js?v=2" defer></script>
 </body>
 </html>
