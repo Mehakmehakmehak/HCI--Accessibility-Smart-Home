@@ -1,10 +1,9 @@
-//COMP 3450: <Mehak,Ujwal,Harshit>
 #include <WiFiS3.h>
 #include <ArduinoHttpClient.h>
 #include <DHT.h>
 
-char ssid[] = "Thread101";
-char pass[] = "12121212";
+char ssid[] = "iPhone";
+char pass[] = "12345678";
 
 String FIREBASE_HOST = "hci-smart-home-default-rtdb.firebaseio.com";
 String FIREBASE_SECRET = "usWNzGu3q9TKUTpUh8mNmyj0iCO2801cPTmpFF4H";
